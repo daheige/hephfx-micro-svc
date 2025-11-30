@@ -11,11 +11,11 @@ import (
 )
 
 func main() {
-	// address := "localhost:50051"
+	address := "localhost:50051"
 	// 或者使用k8s命名服务地址，例如:hello.test.svc.cluster.local:50051
 	// 使用k8s命名服务+dns解析方式连接，格式:dns:///your-service.namespace.svc.cluster.local:50051
 	// address := "dns:///hello.default.svc.cluster.local:30051"
-	address := "hello.default.svc.cluster.local:30051"
+	// address := "hello.default.svc.cluster.local:30051"
 	log.Println("address: ", address)
 
 	// Set up a connection to the server.
@@ -23,7 +23,7 @@ func main() {
 		address,
 		// 如果使用k8s命名服务以及headless方式访问，需要打开下面的注释，实现客户端负载均衡
 		// 关键配置：启用round_robin负载均衡策略
-		grpc.WithDefaultServiceConfig(`{"loadBalancingConfig": [{"round_robin":{}}]}`),
+		// grpc.WithDefaultServiceConfig(`{"loadBalancingConfig": [{"round_robin":{}}]}`),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
