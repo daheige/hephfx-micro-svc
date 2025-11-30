@@ -25,10 +25,11 @@ spec:
           env:
             - name: PORT
               value: "50051"
+          # requests资源请求和limits资源限制
           resources:
             requests:
-              memory: "128Mi"
-              cpu: "100m"
+              memory: "128Mi" # 容器启动时为其预留128兆字节的内存
+              cpu: "100m" # 容器启动时为其预留0.1个CPU核心
             limits:
-              memory: "256Mi"
-              cpu: "200m"
+              memory: "256Mi" # 容器最多可以使用256兆字节内存
+              cpu: "200m" # 容器最多可以使用0.2个CPU核心，超过会被限制使用

@@ -117,3 +117,9 @@ kubernetes             ClusterIP   10.96.0.1        <none>        443/TCP       
 # k8s resolver
 自定义k8s服务发现和注册，参考`clients/go/k8sresolver`实现，运行效果如下：
 ![k8s-resolver.png](k8s-resolver.png)
+
+# k8s hpa
+gRPC 服务配置自动扩容，可以通过创建 Horizontal Pod Autoscaler (HPA) 来实现，执行如下命令创建hpa
+```shell
+kubectl apply -f hpa.yaml
+```
