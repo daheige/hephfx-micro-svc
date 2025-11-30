@@ -1,0 +1,22 @@
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: grpc-hello-node-port
+spec:
+  type: NodePort
+  selector:
+    app: grpc-hello-svc
+  ports:
+    - name: grpc
+      protocol: TCP
+      port: 50051
+      targetPort: 50051
+      # 本地访问30051会转换到50051
+      nodePort: 30051
+    - name: metrics
+      protocol: TCP
+      port: 8090
+      targetPort: 8090
+      # 本地访问30052会转换到8090
+      nodePort: 30052

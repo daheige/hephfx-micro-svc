@@ -53,13 +53,14 @@ func init() {
 func main() {
 	// address := "localhost:50051"
 	// 使用k8s命名服务访问，这里是使用自定义的k8s dns解析模式
-	address := "k8s:///hello.default.svc.cluster.local:50051"
+	address := "dns:///hello.default.svc.cluster.local:50051"
 	log.Println("address: ", address)
 
 	// Set up a connection to the server.
 	clientConn, err := grpc.NewClient(
 		address,
 		// 如果使用k8s命名服务以及headless方式访问
+		// 关键配置：启用round_robin负载均衡策略
 		grpc.WithDefaultServiceConfig(`{"loadBalancingConfig": [{"round_robin":{}}]}`),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
