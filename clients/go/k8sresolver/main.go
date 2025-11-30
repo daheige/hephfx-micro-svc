@@ -17,21 +17,24 @@ type k8sResolver struct {
 	cc     resolver.ClientConn
 }
 
+// ResolveNow 实现 ResolveNow 方法
 func (r *k8sResolver) ResolveNow(resolver.ResolveNowOptions) {
 	// 实现DNS解析逻辑
 	addrs := []resolver.Address{
-		{Addr: "hello.default.svc.cluster.local:50051"},
+		{Addr: "hello.default.svc.cluster.local:30051"},
 	}
 
 	r.cc.UpdateState(resolver.State{Addresses: addrs})
 }
 
+// Close 实现 Close
 func (r *k8sResolver) Close() {}
 
 type k8sResolverBuilder struct{}
 
 // Build 实现build方法
-func (b *k8sResolverBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (resolver.Resolver, error) {
+func (b *k8sResolverBuilder) Build(target resolver.Target, cc resolver.ClientConn,
+	opts resolver.BuildOptions) (resolver.Resolver, error) {
 	r := &k8sResolver{
 		target: target,
 		cc:     cc,
@@ -41,6 +44,7 @@ func (b *k8sResolverBuilder) Build(target resolver.Target, cc resolver.ClientCon
 	return r, nil
 }
 
+// Scheme 命名服务名字
 func (b *k8sResolverBuilder) Scheme() string {
 	return "k8s"
 }
@@ -53,7 +57,7 @@ func init() {
 func main() {
 	// address := "localhost:50051"
 	// 使用k8s命名服务访问，这里是使用自定义的k8s dns解析模式
-	address := "dns:///hello.default.svc.cluster.local:50051"
+	address := "k8s:///hello.default.svc.cluster.local:30051"
 	log.Println("address: ", address)
 
 	// Set up a connection to the server.
@@ -75,7 +79,7 @@ func main() {
 	client := pb.NewGreeterClient(clientConn)
 
 	// Contact the server and print out its response.
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 3; i++ {
 		res, err := client.SayHello(context.Background(), &pb.HelloReq{
 			Name: "daheige",
 		})
