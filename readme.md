@@ -234,15 +234,18 @@ import (
 )
 
 func main() {
-	// address := "localhost:50051" 
-	// 或者使用k8s命名服务地址: hello.svc.local:50051
+	// address := "localhost:50051"
+	// 或者使用k8s命名服务地址，例如:hello.test.svc.cluster.local:50051
 	// 使用k8s命名服务+dns解析方式连接，格式:dns:///your-service.namespace.svc.cluster.local:50051
-	address := "dns:///hello.test.svc.cluster.local:50051"
+	// address := "dns:///hello.default.svc.cluster.local:50051"
+	address := "hello.default.svc.cluster.local:50051"
 	log.Println("address: ", address)
-	
+
 	// Set up a connection to the server.
 	clientConn, err := grpc.NewClient(
 		address,
+		// 如果使用k8s命名服务以及headless方式访问，需要打开下面的注释，实现客户端负载均衡
+		// 关键配置：启用round_robin负载均衡策略
 		grpc.WithDefaultServiceConfig(`{"loadBalancingConfig": [{"round_robin":{}}]}`),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
@@ -250,44 +253,52 @@ func main() {
 		log.Fatalf("failed to connect: %v", err)
 	}
 
-	defer clientConn.Close()
+	defer func() {
+		_ = clientConn.Close()
+	}()
 
 	client := pb.NewGreeterClient(clientConn)
 
 	// Contact the server and print out its response.
-	res, err := client.SayHello(context.Background(), &pb.HelloReq{
-		Name: "daheige",
-	})
-	if err != nil {
-		log.Fatalf("could not greet: %v", err)
+	for i := 0; i < 3; i++ {
+		res, err := client.SayHello(context.Background(), &pb.HelloReq{
+			Name: "daheige",
+		})
+		if err != nil {
+			log.Fatalf("could not greet: %v", err)
+		}
+
+		log.Printf("res message:%s", res.Message)
 	}
-	log.Printf("res message:%s", res.Message)
 }
 ```
+
 以下是k8s headless deployment配置：
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: grpc-server
+  name: grpc-hello-svc
   labels:
-    app: grpc-server
+    app: grpc-hello-svc
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: grpc-server
+      app: grpc-hello-svc
   template:
     metadata:
       labels:
-        app: grpc-server
+        app: grpc-hello-svc
     spec:
       containers:
-        - name: grpc-server
-          image: your-grpc-server:latest
+        - name: grpc-hello-svc
+          image: hello-svc:v1.0
           ports:
             - containerPort: 50051
               name: grpc
+            - containerPort: 8090
+              name: metrics
           env:
             - name: PORT
               value: "50051"
@@ -299,23 +310,28 @@ spec:
               memory: "256Mi"
               cpu: "200m"
 ```
+
 对应的headless service 配置如下：
 ```yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: grpc-headless-service # 服务名
+  name: grpc-hello-svc # 服务名
   labels:
-    app: grpc-server
+    app: grpc-hello-svc
 spec:
   clusterIP: None  # 关键配置：定义为Headless Service
   selector:
-    app: grpc-server  # 匹配Deployment中的Pod标签
+    app: grpc-hello-svc  # 匹配Deployment中的Pod标签
   ports:
-  - name: grpc
-    protocol: TCP
-    port: 50051      # Service端口
-    targetPort: 50051 # Pod端口
+    - name: grpc
+      protocol: TCP
+      port: 50051      # Service端口
+      targetPort: 50051 # Pod端口
+    - name: metrics
+      protocol: TCP
+      port: 8090      # metrics端口
+      targetPort: 8090 # Pod端口
   publishNotReadyAddresses: true  # 发布未就绪的Pod地址
 ```
 对应的configmap如下：
@@ -325,11 +341,13 @@ kind: ConfigMap
 metadata:
   name: grpc-client-config
 data:
-  grpc-endpoint: "dns:///grpc-headless-service.default.svc.cluster.local:50051"
+  grpc-endpoint: "dns:///hello.default.svc.cluster.local:50051"
   # 客户端连接地址格式：dns:///<service-name>.<namespace>.svc.cluster.local:50051
 ```
 
-以上配置，请根据实际情况进行调整即可，或者说使用其他的服务发现和注册平台也可以，例如：etcd服务发现和注册，封装见 https://github.com/daheige/hephfx/tree/main/hestia 包。
+服务发现和注册说明：
+- 以上配置，请根据实际情况进行调整即可，或者说使用其他的服务发现和注册平台也可以，例如：etcd服务发现和注册，封装见 https://github.com/daheige/hephfx/tree/main/hestia 包。
+- 如果需要本地调试调用k8s中的pods节点微服务接口，可以参考`k8s`目录中的`k8s-node-port.yaml`或直接通过`kubectl port-forward service/grpc-hello-svc 50051:50051`实现端口转发。
 
 # pb code hosting
 建议将grpc proto生成的pb代码单独托管在独立的git仓库中，便于维护和管理。pb代码生成的相关工具，见bin目录中的shell脚本。
