@@ -12,11 +12,11 @@ spec:
       protocol: TCP
       port: 50051
       targetPort: 50051
-      # 本地访问30051会转换到50051
+      # 本地访问30051会转发到 k8s pods 50051 端口
       nodePort: 30051
     - name: metrics
       protocol: TCP
       port: 8090
       targetPort: 8090
-      # 本地访问30052会转换到8090
+      # 本地访问30052会转发到 k8s pods 8090 端口
       nodePort: 30052
