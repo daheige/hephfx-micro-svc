@@ -6,6 +6,7 @@
 # gen code for Go
 - 这里我使用git将pb代码进行独立托管，方便维护和拓展，同时可以在多个项目中或多语言环境下，直接引入pb代码即可。
 - 具体代码生成见：https://github.com/daheige/hello-pb
+- pb代码生成的相关工具，见`hello-pb/bin`目录中的shell脚本。
 
 如果不想pb托管，希望跟随项目走，可以参考：https://github.com/daheige/hephfx-micro-svc/tree/v1 分支代码
 
@@ -343,6 +344,3 @@ data:
 服务发现和注册说明：
 - 以上配置，请根据实际情况进行调整即可，或者说使用其他的服务发现和注册平台也可以，例如：etcd服务发现和注册，封装见 https://github.com/daheige/hephfx/tree/main/hestia 包。
 - 如果需要本地调试调用k8s中的pods节点微服务接口，可以参考`k8s`目录中的`k8s-node-port.yaml`或直接通过`kubectl port-forward service/grpc-hello-svc 50051:50051`实现端口转发。
-
-# pb code hosting
-建议将grpc proto生成的pb代码单独托管在独立的git仓库中，便于维护和管理。pb代码生成的相关工具，见bin目录中的shell脚本。
