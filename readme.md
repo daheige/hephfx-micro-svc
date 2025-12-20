@@ -344,3 +344,6 @@ data:
 服务发现和注册说明：
 - 以上配置，请根据实际情况进行调整即可，或者说使用其他的服务发现和注册平台也可以，例如：etcd服务发现和注册，封装见 https://github.com/daheige/hephfx/tree/main/hestia 包。
 - 如果需要本地调试调用k8s中的pods节点微服务接口，可以参考`k8s`目录中的`k8s-node-port.yaml`或直接通过`kubectl port-forward service/grpc-hello-svc 50051:50051`实现端口转发。
+
+# rust grpc microservice
+通过 tonic 框架实现，具体看：src/main.rs 或 https://github.com/daheige/rs-grpc

@@ -1,3 +1,38 @@
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Code coverage profiles and other test artifacts
+*.out
+coverage.*
+*.coverprofile
+profile.cov
+
+# Dependency directories (remove the comment below to include it)
+# vendor/
+
+# Go workspace file
+go.work
+go.work.sum
+
+# env file
+.env
+
+# Editor/IDE
+.idea/
+.vscode/
+
+*.log
+node_modules
+
+# Added by cargo
+target/*
+
 clients
 bin/go-generate.sh
 bin/grpc_tools.sh
@@ -6,8 +41,8 @@ bin/nodejs-gen.sh
 bin/protoc-inject-tag.sh
 bin/validator-generate.sh
 bin/validator_grep.sh
-
 protos
 tools
 *.log
 *.md
+/target

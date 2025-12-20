@@ -1,0 +1,8 @@
+app_name: hello-svc
+app_debug: true
+# grpc server 运行端口
+grpc_port: 50051
+# metrics 上报端口
+monitor_port: 8090
+# 平滑退出时间，单位s
+graceful_wait: 5
