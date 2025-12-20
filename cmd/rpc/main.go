@@ -10,8 +10,9 @@ import (
 	"github.com/daheige/hephfx/micro"
 	"github.com/daheige/hephfx/monitor"
 
+	"github.com/daheige/hello-pb/pb"
+
 	"github.com/daheige/hephfx-micro-svc/internal/interfaces/rpc/interceptor"
-	"github.com/daheige/hephfx-micro-svc/pb"
 )
 
 func main() {

@@ -4,24 +4,17 @@
 - 支持grpc server and grpc http gateway 启动
 
 # gen code for Go
-1. 先执行如下命令安装必要的go tools
-```shell
-sh bin/grpc_tools.sh
-```
+- 这里我使用git将pb代码进行独立托管，方便维护和拓展，同时可以在多个项目中或多语言环境下，直接引入pb代码即可。
+- 具体代码生成见：https://github.com/daheige/hello-pb
 
-2. 执行如下命令实现go代码生成
-```shell
-sh bin/go-generate.sh
-```
-
-一般来说，生成的pb代码，建议放在独立git仓库中，方便集中式管理和维护。
+如果不想pb托管，希望跟随项目走，可以参考：https://github.com/daheige/hephfx-micro-svc/tree/v1 分支代码
 
 # start running
 1. 先运行命令`go run cmd/rpc/main.go`启动服务端。
 2. 接着执行`go run clients/go/main.go`运行客户端。
 
 # grpc gateway
-1. 需要在proto文件添加如下核心配置
+1. 需要在 https://github.com/daheige/hello-pb/blob/main/protos/hello.proto 文件添加如下核心配置
 ```protobuf
 import "google/api/annotations.proto";
 
@@ -34,7 +27,8 @@ service Greeter {
     };
 }
 ```
-2. 执行`go run cmd/gateway/main.go`即可（启动之前，需要先启动rpc服务端）。
+2. 切换到 https://github.com/daheige/hello-pb 项目中，然后`make gen`命令生成pb代码，并打对应的tag标签，引入当前项目即可。
+3. 执行`go run cmd/gateway/main.go`即可（启动之前，需要先启动rpc服务端）。
 
 # grpc grpcurl tools
 - grpcurl工具主要用于grpcurl请求，可以快速查看grpc proto定义以及调用grpc service定义的方法。
@@ -96,6 +90,7 @@ grpcurl -d '{"name":"daheige"}' -plaintext 127.0.0.1:50051 Hello.Greeter.SayHell
 ```
 
 # gen and run nodejs code
+参考：https://github.com/daheige/hello-pb 以下步骤在 hello-pb 项目中执行。
 1. install grpc tools
 ```shell
 sh bin/node-grpc-tools.sh
@@ -128,7 +123,7 @@ node clients/nodejs/app.js
 ![node-client-run.png](node-client-run.png)
 
 # Makefile
-执行`make gen`一键生成pb代码
+进入 https://github.com/daheige/hello-pb 项目中执行`make gen`一键生成pb代码
 
 # only start grpc server
 ```go
@@ -230,7 +225,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/daheige/hephfx-micro-svc/pb"
+	"github.com/daheige/hello-pb/pb"
 )
 
 func main() {

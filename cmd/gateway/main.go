@@ -21,8 +21,9 @@ import (
 	"github.com/daheige/hephfx/logger"
 	"github.com/daheige/hephfx/monitor"
 
+	"github.com/daheige/hello-pb/pb"
+
 	"github.com/daheige/hephfx-micro-svc/internal/interfaces/gateway/middleware"
-	"github.com/daheige/hephfx-micro-svc/pb"
 )
 
 func main() {

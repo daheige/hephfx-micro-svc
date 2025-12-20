@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/resolver"
 
-	"github.com/daheige/hephfx-micro-svc/pb"
+	"github.com/daheige/hello-pb/pb"
 )
 
 // 自定义k8s解析器，用于Kubernetes Headless Service

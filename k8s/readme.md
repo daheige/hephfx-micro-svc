@@ -38,7 +38,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/daheige/hephfx-micro-svc/pb"
+	"github.com/daheige/hello-pb/pb"
 )
 
 func main() {

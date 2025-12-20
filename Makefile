@@ -23,11 +23,3 @@ exec:
 	docker exec -it ${CONTAINER_NAME} /bin/bash
 logs:
 	docker logs ${CONTAINER_NAME} -f
-
-gen: gen-pb gen-node
-
-gen-pb:
-	sh bin/go-generate.sh
-
-gen-node:
-	sh bin/nodejs-gen.sh
