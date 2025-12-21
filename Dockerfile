@@ -1,5 +1,5 @@
 # 构建阶段
-FROM golang:1.24.10-alpine AS builder
+FROM golang:1.24.11-alpine AS builder
 
 LABEL authors="daheige"
 

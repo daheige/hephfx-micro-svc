@@ -11,3 +11,4 @@ protos
 tools
 *.log
 *.md
+target/
