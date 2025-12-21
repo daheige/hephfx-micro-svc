@@ -346,4 +346,5 @@ data:
 - 如果需要本地调试调用k8s中的pods节点微服务接口，可以参考`k8s`目录中的`k8s-node-port.yaml`或直接通过`kubectl port-forward service/grpc-hello-svc 50051:50051`实现端口转发。
 
 # rust grpc microservice
-通过 tonic 框架实现，具体看：src/main.rs 或 https://github.com/daheige/rs-grpc
+- 通过 tonic 框架实现，具体看：src/main.rs 或 https://github.com/daheige/rs-grpc
+- rust客户端调用方式见：src/client.rs 文件，pb代码生成方式见：https://github.com/daheige/hello-pb/blob/main/build.rs
