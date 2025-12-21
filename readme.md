@@ -89,6 +89,10 @@ grpcurl -d '{"name":"daheige"}' -plaintext 127.0.0.1:50051 Hello.Greeter.SayHell
   "message": "hello,daheige"
 }
 ```
+如果不支持reflection功能，使用grpcurl命令，可以指定-proto xxx.proto 参数，此时调用命令如下：
+```shell
+ grpcurl  -proto hello.proto -plaintext 127.0.0.1:50051 describe Hello.HelloReq
+```
 
 # gen and run nodejs code
 参考：https://github.com/daheige/hello-pb 以下步骤在 hello-pb 项目中执行。
