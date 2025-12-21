@@ -493,7 +493,7 @@ checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 [[package]]
 name = "hello-pb"
 version = "0.1.0"
-source = "git+https://github.com/daheige/hello-pb?tag=v1.0.1#8491752d91c5748228a16ed17eccccb7cfea0124"
+source = "git+https://github.com/daheige/hello-pb?tag=v1.0.2#f10cca4a84cd88dd7ee3bf7f27769935af3903a1"
 dependencies = [
  "prost",
  "serde",

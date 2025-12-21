@@ -28,7 +28,7 @@ autometrics = { version = "3.0.0", features = ["prometheus-exporter"] }
 log = "0.4.28"
 
 # 通过git方式引入 hello-pb 包
-hello-pb = { git = "https://github.com/daheige/hello-pb",tag = "v1.0.1" }
+hello-pb = { git = "https://github.com/daheige/hello-pb",tag = "v1.0.2" }
 
 # monitor 包
 monitor = { git = "https://github.com/rs-god/hera",tag = "v1.0.1" }
