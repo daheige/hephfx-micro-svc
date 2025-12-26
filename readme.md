@@ -23,7 +23,7 @@ import "google/api/annotations.proto";
 service Greeter {
     rpc SayHello (HelloReq) returns (HelloReply){
         option (google.api.http) = {
-            get: "/v1/say/{id}"
+            get: "/v1/say/{name}"
         };
     };
 }
