@@ -219,7 +219,7 @@ s := micro.NewService(
 ```go
 grpcPort := 50051
 	// 如果启动了grpc http gateway，可以自定义路由地址，例如用于健康检查
-	// 访问地址如下：http://localhost:50051/healthz
+	// 访问地址：http://localhost:50051/healthz
 	routerOpts := micro.WithRoutes(micro.Route{
 		Method: "GET",
 		Path:   "/healthz",
