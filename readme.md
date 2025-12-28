@@ -214,6 +214,50 @@ s := micro.NewService(
 // ...
 ```
 
+# register custom router
+通过 `micro.WithRoutes` 函数可以注册多个自定义路由规则
+```go
+grpcPort := 50051
+	// 如果启动了grpc http gateway，可以自定义路由地址，例如用于健康检查
+	// 访问地址如下：http://localhost:50051/healthz
+	routerOpts := micro.WithRoutes(micro.Route{
+		Method: "GET",
+		Path:   "/healthz",
+		Handler: func(w http.ResponseWriter, r *http.Request) {
+			log.Println("request path:", r.URL.Path)
+			b, _ := json.Marshal(map[string]interface{}{
+				"code":    0,
+				"message": "OK",
+				"active":  true,
+			})
+			w.Write(b)
+		},
+	})
+
+	// 创建grpc微服务实例
+	s := micro.NewService(
+		fmt.Sprintf("0.0.0.0:%d", grpcPort),
+
+		// start grpc and http gateway use one address
+		micro.WithEnableGRPCShareAddress(),
+		// micro.WithGRPCHTTPAddress(fmt.Sprintf("0.0.0.0:%d", 8080)),
+		micro.WithHandlerFromEndpoints(pb.RegisterGreeterHandlerFromEndpoint), // register http endpoint
+		routerOpts, // register custom router
+
+		micro.WithLogger(micro.LoggerFunc(log.Printf)),
+		micro.WithShutdownTimeout(5*time.Second),
+		micro.WithEnablePrometheus(), // prometheus interceptor
+
+		micro.WithEnableRequestValidator(), // request validator interceptor
+		// 使用自定义请求拦截器
+		micro.WithUnaryInterceptor(interceptor.AccessLog),
+		micro.WithShutdownFunc(func() {
+			time.Sleep(3 * time.Second) // mock long operations
+			log.Println("grpc server shutdown")
+		}),
+	)
+```
+
 # service discovery and register
 - 在 Kubernetes 中让 gRPC 客户端连接集群内服务，关键在于选择合适的服务发现机制。gRPC 的长连接特性使得直接使用 K8s Service 无法实现真正的负载均衡。
 - ‌核心解决方案：使用 Headless Service + DNS 解析‌。也就是说，通过创建 `Headless Service（clusterIP: None）`，gRPC 客户端能够直接获取所有 Pod IP 地址，从而实现基于连接的负载均衡。
