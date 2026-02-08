@@ -1,6 +1,6 @@
 use autometrics::autometrics;
 use hello_pb::hello::greeter_server::{Greeter, GreeterServer};
-use hello_pb::hello::{HelloReply, HelloReq};
+use hello_pb::hello::{HealthzReply, HealthzReq, HelloReply, HelloReq};
 use infras::APP_CONFIG;
 use log::info;
 use logger::Logger;
@@ -19,6 +19,22 @@ pub struct GreeterImpl {}
 
 #[async_trait::async_trait]
 impl Greeter for GreeterImpl {
+    async fn healthz(
+        &self,
+        request: Request<HealthzReq>,
+    ) -> Result<Response<HealthzReply>, Status>{
+        let req = request.into_inner();
+        println!("req:{:?}",req);
+
+        let current_time= chrono::Utc::now().format("%Y-%m-%d %H:%M:%S").to_string();
+        let reply = HealthzReply{
+            current_time,
+            alive: true,
+        };
+
+        Ok(Response::new(reply))
+    }
+
     // 实现async_hello方法
     #[autometrics(objective = API_SLO)]
     // 也可以使用下面的方式，简单处理

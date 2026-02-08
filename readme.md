@@ -27,6 +27,8 @@ service Greeter {
         };
     };
 }
+
+// 省略其他message
 ```
 2. 切换到 https://github.com/daheige/hello-pb 项目中，然后`make gen`命令生成pb代码，并打对应的tag标签，引入当前项目即可。
 3. 执行`go run cmd/gateway/main.go`即可（启动之前，需要先启动rpc服务端）。

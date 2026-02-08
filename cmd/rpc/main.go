@@ -45,9 +45,9 @@ func main() {
 		fmt.Sprintf("0.0.0.0:%d", grpcPort),
 
 		// start grpc and http gateway use one address
-		// micro.WithEnableGRPCShareAddress(),
+		micro.WithEnableGRPCShareAddress(),
 		// micro.WithGRPCHTTPAddress(fmt.Sprintf("0.0.0.0:%d", 8080)),
-		// micro.WithHandlerFromEndpoints(pb.RegisterGreeterHandlerFromEndpoint), // register http endpoint
+		micro.WithHandlerFromEndpoints(pb.RegisterGreeterHandlerFromEndpoint), // register http endpoint
 		// routerOpts, // register custom router
 
 		micro.WithLogger(micro.LoggerFunc(log.Printf)),
@@ -91,6 +91,16 @@ type GreeterServer struct {
 func (s *GreeterServer) SayHello(ctx context.Context, req *pb.HelloReq) (*pb.HelloReply, error) {
 	reply := &pb.HelloReply{
 		Message: fmt.Sprintf("hello,%s", req.Name),
+	}
+
+	return reply, nil
+}
+
+// Healthz 实现健康检查
+func (s *GreeterServer) Healthz(context.Context, *pb.HealthzReq) (*pb.HealthzReply, error) {
+	reply := &pb.HealthzReply{
+		CurrentTime: time.Now().Format("2006-01-02 15:04:05"),
+		Alive:       true,
 	}
 
 	return reply, nil

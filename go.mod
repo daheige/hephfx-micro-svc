@@ -3,12 +3,12 @@ module github.com/daheige/hephfx-micro-svc
 go 1.24.11
 
 require (
-	github.com/daheige/hello-pb v1.0.2
+	github.com/daheige/hello-pb v1.0.3
 	github.com/daheige/hephfx v1.2.0
 	github.com/gin-gonic/gin v1.11.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.3
 	github.com/prometheus/client_golang v1.23.2
-	google.golang.org/grpc v1.77.0
+	google.golang.org/grpc v1.78.0
 )
 
 require (
