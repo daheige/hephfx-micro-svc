@@ -4,7 +4,7 @@ go 1.24.0
 
 require (
 	github.com/daheige/hello-pb v1.0.4
-	github.com/daheige/hephfx v1.3.0
+	github.com/daheige/hephfx v1.3.1
 	github.com/gin-gonic/gin v1.11.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.28.0
 	github.com/prometheus/client_golang v1.23.2
