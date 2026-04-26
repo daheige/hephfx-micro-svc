@@ -31,7 +31,7 @@ func main() {
 	logger.Default(
 		logger.WithStdout(true),
 		logger.WithJsonFormat(true),
-		logger.WriteToFile(false),
+		logger.WithWriteToFile(false),
 	)
 
 	// prometheus metrics和pprof接入
