@@ -3,12 +3,12 @@ module github.com/daheige/hephfx-micro-svc
 go 1.25.0
 
 require (
-	github.com/daheige/hello-pb v1.0.4
+	github.com/daheige/hello-pb v1.0.5
 	github.com/daheige/hephfx v1.3.3
 	github.com/gin-gonic/gin v1.12.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.29.0
 	github.com/prometheus/client_golang v1.23.2
-	google.golang.org/grpc v1.80.0
+	google.golang.org/grpc v1.81.1
 )
 
 require (
@@ -53,8 +53,8 @@ require (
 	golang.org/x/net v0.53.0 // indirect
 	golang.org/x/sys v0.43.0 // indirect
 	golang.org/x/text v0.36.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20260420184626-e10c466a9529 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260420184626-e10c466a9529 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20260519071638-aa98bba5eb94 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260511170946-3700d4141b60 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 )

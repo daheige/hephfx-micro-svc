@@ -8,10 +8,10 @@ name = "hello-client"
 path = "src/client.rs"
 
 [dependencies]
-tonic = "0.14.2"
+tonic = "0.14.6"
 
 # 异步运行时相关依赖
-tokio = { version = "1.49.0", features = ["full"] }
+tokio = { version = "1.52.3", features = ["full"] }
 async-trait = "0.1.89"
 
 serde = { version = "1.0.228", features = ["derive"] }
@@ -27,10 +27,10 @@ autometrics = { version = "3.0.0", features = ["prometheus-exporter"] }
 # 操作日志
 log = "0.4.29"
 
-chrono = "0.4.43"
+chrono = "0.4.44"
 
 # 通过git方式引入 hello-pb 包
-hello-pb = { git = "https://github.com/daheige/hello-pb",tag = "v1.0.3" }
+hello-pb = { git = "https://github.com/daheige/hello-pb",tag = "v1.0.5" }
 
 # monitor 包
 monitor = { git = "https://github.com/rs-god/hera",tag = "v1.1.6" }
