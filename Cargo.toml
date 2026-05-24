@@ -1,6 +1,6 @@
 [package]
 name = "hephfx-micro-svc"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 
 [[bin]]
@@ -33,7 +33,7 @@ chrono = "0.4.44"
 hello-pb = { git = "https://github.com/daheige/hello-pb",tag = "v1.0.5" }
 
 # monitor 包
-monitor = { git = "https://github.com/rs-god/hera",tag = "v1.1.6" }
-logger = { git = "https://github.com/rs-god/hera",tag = "v1.1.6" }
-config = { git = "https://github.com/rs-god/hera",tag = "v1.1.6" }
-shutdown = { git = "https://github.com/rs-god/hera",tag = "v1.1.6" }
+monitor = { git = "https://github.com/rs-god/hera",tag = "v1.2.1" }
+logger = { git = "https://github.com/rs-god/hera",tag = "v1.2.1" }
+config = { git = "https://github.com/rs-god/hera",tag = "v1.2.1" }
+shutdown = { git = "https://github.com/rs-god/hera",tag = "v1.2.1" }
