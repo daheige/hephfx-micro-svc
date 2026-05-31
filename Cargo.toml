@@ -1,6 +1,6 @@
 [package]
 name = "hephfx-micro-svc"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2024"
 
 [[bin]]
@@ -30,7 +30,7 @@ log = "0.4.29"
 chrono = "0.4.44"
 
 # 通过git方式引入 hello-pb 包
-hello-pb = { git = "https://github.com/daheige/hello-pb",tag = "v1.0.6" }
+hello-pb = { git = "https://github.com/daheige/hello-pb",tag = "v1.1.0" }
 
 # monitor 包
 monitor = { git = "https://github.com/rs-god/hera",tag = "v1.2.1" }
