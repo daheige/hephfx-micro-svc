@@ -12,8 +12,8 @@ github.com/cloudwego/base64x v0.1.7 h1:NppS+Fgzg5ovhn4NkUXaDT3x9jldgH5ToMCqzBSi2
 github.com/cloudwego/base64x v0.1.7/go.mod h1:Cu1PV9zfrSf7ET2tIbWbbEy7jO7HHJ13q4X2SQ8aWYg=
 github.com/daheige/hello-pb v1.1.0 h1:JaryT1OR7kcN3Bl9hhZxPLRO1vdEYDKCHYQIbxYxFVA=
 github.com/daheige/hello-pb v1.1.0/go.mod h1:TqcL1DEtc+cO01rUFuSRK2bMpBHxJW1ejf2c0S8kIC0=
-github.com/daheige/hephfx v1.3.5 h1:U1cUU+B/rUqNqPjcQCTq1T+1VkKszWbCDIao6C0At1E=
-github.com/daheige/hephfx v1.3.5/go.mod h1:NOwxxg6gzTu8lxOV/GSEvQJyPXoZmvwKQ0yPNQSTvOc=
+github.com/daheige/hephfx v1.3.6 h1:2FRFABIl9HwjDbM9JDe+SNIPmRKHoivmzJBDXqMAVv4=
+github.com/daheige/hephfx v1.3.6/go.mod h1:NOwxxg6gzTu8lxOV/GSEvQJyPXoZmvwKQ0yPNQSTvOc=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
