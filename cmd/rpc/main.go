@@ -13,6 +13,7 @@ import (
 	"github.com/daheige/hello-pb/pb"
 
 	"github.com/daheige/hephfx-micro-svc/internal/interfaces/rpc/interceptor"
+	"github.com/daheige/hephfx-micro-svc/internal/registry"
 )
 
 func main() {
@@ -74,6 +75,25 @@ func main() {
 
 	// 注册grpc微服务
 	pb.RegisterGreeterServer(s.GRPCServer, service)
+
+	// etcd注册
+	regEntry, err := registry.NewServiceRegistry([]string{
+		"http://127.0.0.1:12379",
+	}, "services", "Hello.Greeter", "v1", registry.Endpoint{
+		Address:  "http://127.0.0.1:50051",
+		Weight:   0,
+		Protocol: "GRPC",
+		Region:   "",
+		Healthy:  true,
+	})
+	if err != nil {
+		log.Fatal("failed to new service registry", err)
+	}
+	err = regEntry.Register()
+	if err != nil {
+		log.Fatal("failed to register service", err)
+	}
+	defer regEntry.Deregister()
 
 	// 运行服务
 	if err := s.Run(); err != nil {
