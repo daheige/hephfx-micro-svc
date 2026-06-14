@@ -78,14 +78,14 @@ func main() {
 
 	// etcd注册
 	regEntry, err := registry.NewServiceRegistry([]string{
-		"http://127.0.0.1:12379",
+		"127.0.0.1:12379",
 	}, "services", "Hello.Greeter", "v1", registry.Endpoint{
-		Address:  "http://127.0.0.1:50051",
-		Weight:   0,
+		Address:  "127.0.0.1:50051",
+		Weight:   100,
 		Protocol: "GRPC",
 		Region:   "",
 		Healthy:  true,
-	})
+	}, registry.WithTTL(10), registry.WithEtcdTimeout(5*time.Second))
 	if err != nil {
 		log.Fatal("failed to new service registry", err)
 	}

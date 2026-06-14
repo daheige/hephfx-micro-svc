@@ -11,6 +11,20 @@
 如果不想pb托管，希望跟随项目走，可以参考：https://github.com/daheige/hephfx-micro-svc/tree/v1 分支代码
 
 # start running
+0. 先启动etcd
+```shell
+docker run -d \
+  --name etcd_test \
+  --restart=always \
+  -p 12379:2379 \
+  -p 12380:2380 \
+  quay.io/coreos/etcd:v3.5.1 \
+  /usr/local/bin/etcd \
+  --name etcd_test \
+  --data-dir /etcd-data \
+  --advertise-client-urls http://0.0.0.0:2379 \
+  --listen-client-urls http://0.0.0.0:2379
+```
 1. 先运行命令`go run cmd/rpc/main.go`启动服务端。
 2. 接着执行`go run clients/go/main.go`运行客户端。
 

@@ -1,4 +1,23 @@
-# gRPC 下游服务启动示例
+# 服务注册与发现
+
+`internal/registry` 提供基于 etcd 的服务注册、发现与 gRPC resolver 能力。
+
+## 核心设计
+
+- 每个服务实例注册到独立的 etcd key：
+  ```
+  /{prefix}/{service}/{version}/{instance-id}
+  ```
+  例如：
+  ```
+  /services/Hello.Greeter/v1/127.0.0.1-50051
+  /services/Hello.Greeter/v1/127.0.0.1-50052
+  ```
+- `instance-id` 默认使用 `Endpoint.Address` 的 sanitized 值，也可通过 `WithInstanceID("id")` 显式指定。
+- `version` 为空时，默认使用 `_default`。
+- 发现端通过 prefix 查询聚合所有实例，支持 `Get` 与 `Watch`。
+
+## gRPC 下游服务启动示例
 
 ```go
 package main
@@ -11,53 +30,49 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/daheige/hephfx-micro-svc/internal/registry"
+	pb "github.com/daheige/hello-pb/pb/go/hello"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
 
-// OrderService 订单服务实现
-type OrderService struct {
-	UnimplementedOrderServiceServer
+type GreeterService struct {
+	pb.UnimplementedGreeterServer
 }
 
-// CreateOrder 创建订单方法
-// Bridge 会将业务方的请求路由到此方法
-func (s *OrderService) CreateOrder(ctx context.Context, req *CreateOrderRequest) (*CreateOrderResponse, error) {
-	// 业务逻辑处理
-	orderID := fmt.Sprintf("order-%d", time.Now().Unix())
-	return &CreateOrderResponse{
-		OrderId: orderID,
-		Status:  "created",
+func (s *GreeterService) SayHello(ctx context.Context, req *pb.HelloRequest) (*pb.HelloReply, error) {
+	return &pb.HelloReply{
+		Message: fmt.Sprintf("hello %s", req.Name),
 	}, nil
 }
 
 func main() {
-	// 1. 创建 gRPC 服务
 	lis, err := net.Listen("tcp", ":50051")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	gs := grpc.NewServer()
-	RegisterOrderServiceServer(gs, &OrderService{})
-	reflection.Register(gs) // 启用反射，便于 Bridge 调用
+	pb.RegisterGreeterServer(gs, &GreeterService{})
+	reflection.Register(gs)
 
-	// 2. 注册到 etcd（关键步骤）
 	reg, err := registry.NewServiceRegistry(
-		[]string{"etcd-0:2379", "etcd-1:2379", "etcd-2:2379"},
-		"/services/",           // etcd 前缀
-		"order_service",        // 服务名（对应 Bridge 的 target 前缀）
-		"default",              // 版本
+		[]string{"127.0.0.1:12379"},
+		"services",             // etcd 前缀，最终 key 为 /services/Hello.Greeter/v1/...
+		"Hello.Greeter",        // 服务名
+		"v1",                   // 版本
 		registry.Endpoint{
-			Address:  "10.0.1.5:50051",  // 本机地址
+			Address:  "127.0.0.1:50051",
 			Weight:   100,
-			Protocol: "GRPC",             // 协议类型
+			Protocol: "GRPC",
 			Region:   "cn-north-1",
 			Tags:     map[string]string{"version": "v1"},
 			Healthy:  true,
 		},
+		registry.WithTTL(10),
+		registry.WithEtcdTimeout(5*time.Second),
 	)
 	if err != nil {
 		log.Fatal(err)
@@ -66,26 +81,24 @@ func main() {
 	if err := reg.Register(); err != nil {
 		log.Fatal(err)
 	}
-	defer reg.Deregister() // 优雅退出时注销
+	defer reg.Deregister()
 
-	// 3. 启动 gRPC 服务
-	log.Println("Order service starting on :50051")
+	log.Println("Greeter service starting on :50051")
 	go func() {
 		if err := gs.Serve(lis); err != nil {
 			log.Fatal(err)
 		}
 	}()
 
-	// 4. 等待退出信号
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 	<-sigCh
 
-	log.Println("Shutting down order service...")
+	log.Println("Shutting down greeter service...")
 }
 ```
 
-# HTTP 下游服务启动示例
+## HTTP 下游服务启动示例
 
 ```go
 package main
@@ -93,7 +106,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -101,33 +113,14 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/daheige/bridge-svc/pkg/registry"
+	"github.com/daheige/hephfx-micro-svc/internal/registry"
 )
 
-// UserHandler 用户服务 HTTP 处理器
-type UserHandler struct{}
-
-// GetUser 获取用户信息
-// Bridge 会将 gRPC 请求转换为 HTTP 请求路由到此方法
-func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
-	userID := r.URL.Path[len("/user_service/"):]
-	resp := map[string]interface{}{
-		"user_id": userID,
-		"name":    "张三",
-		"email":   "zhangsan@example.com",
-	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
-}
-
 func main() {
-	// 1. 创建 HTTP 服务
 	mux := http.NewServeMux()
-	mux.HandleFunc("/user_service/GetUser", func(w http.ResponseWriter, r *http.Request) {
-		// Bridge 会将请求路径映射为 /user_service/GetUser
-		userID := r.Header.Get("x-user-id") // 从 metadata 透传的 header
+	mux.HandleFunc("/user/GetUser", func(w http.ResponseWriter, r *http.Request) {
 		resp := map[string]interface{}{
-			"user_id": userID,
+			"user_id": "10001",
 			"name":    "张三",
 			"email":   "zhangsan@example.com",
 		}
@@ -140,20 +133,20 @@ func main() {
 		Handler: mux,
 	}
 
-	// 2. 注册到 etcd（关键步骤）
 	reg, err := registry.NewServiceRegistry(
-		[]string{"etcd-0:2379", "etcd-1:2379", "etcd-2:2379"},
-		"/services/",           // etcd 前缀
-		"user_service",         // 服务名（对应 Bridge 的 target）
-		"default",              // 版本
+		[]string{"127.0.0.1:12379"},
+		"services",
+		"user",
+		"v1",
 		registry.Endpoint{
-			Address:  "10.0.1.7:8080",   // 本机地址
+			Address:  "127.0.0.1:8080",
 			Weight:   100,
-			Protocol: "HTTP",             // 协议类型（Bridge 使用 HTTP Handler）
+			Protocol: "HTTP",
 			Region:   "cn-north-1",
 			Tags:     map[string]string{"version": "v1"},
 			Healthy:  true,
 		},
+		registry.WithTTL(10),
 	)
 	if err != nil {
 		log.Fatal(err)
@@ -164,7 +157,6 @@ func main() {
 	}
 	defer reg.Deregister()
 
-	// 3. 启动 HTTP 服务
 	log.Println("User service starting on :8080")
 	go func() {
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -172,12 +164,10 @@ func main() {
 		}
 	}()
 
-	// 4. 等待退出信号
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 	<-sigCh
 
-	// 5. 优雅关闭
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	server.Shutdown(ctx)
@@ -185,3 +175,116 @@ func main() {
 }
 ```
 
+## 服务发现
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"time"
+
+	"github.com/daheige/hephfx-micro-svc/internal/registry"
+)
+
+func main() {
+	discovery, err := registry.NewEtcdDiscovery(
+		[]string{"127.0.0.1:12379"},
+		"services",
+		5*time.Second,
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// 一次性获取
+	endpoints, err := discovery.Get(context.Background(), "Hello.Greeter", "v1")
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, ep := range endpoints {
+		fmt.Println(ep.Address, ep.Weight, ep.Protocol)
+	}
+
+	// 监听变化
+	watcher, err := discovery.Watch(context.Background(), "Hello.Greeter", "v1")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer watcher.Stop()
+
+	for {
+		endpoints, err := watcher.Next()
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println("updated endpoints:", endpoints)
+	}
+}
+```
+
+## gRPC Resolver
+
+客户端可以通过自定义 scheme 直接访问 etcd 发现的服务。
+
+```go
+package main
+
+import (
+	"log"
+	"time"
+
+	"github.com/daheige/hephfx-micro-svc/internal/registry"
+	pb "github.com/daheige/hello-pb/pb/go/hello"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+)
+
+func main() {
+	discovery, err := registry.NewEtcdDiscovery(
+		[]string{"127.0.0.1:12379"},
+		"services",
+		5*time.Second,
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// 注册 resolver，scheme 为 "etcd"
+	registry.RegisterEtcdResolver(discovery, "etcd")
+
+	conn, err := grpc.NewClient(
+		"etcd:///Hello.Greeter/v1",
+		grpc.WithDefaultServiceConfig(`{"loadBalancingConfig": [{"round_robin":{}}]}`),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+
+	client := pb.NewGreeterClient(conn)
+	_ = client
+}
+```
+
+## 配置选项
+
+| 选项 | 说明 | 默认值 |
+|------|------|--------|
+| `WithTTL(ttl)` | etcd 租约 TTL，单位秒 | 10 |
+| `WithEtcdTimeout(timeout)` | etcd 操作超时 | 5s |
+| `WithInstanceID(id)` | 自定义实例标识 | `Endpoint.Address` 的 sanitized 值 |
+
+## 注意事项
+
+- 包路径为 `github.com/daheige/hephfx-micro-svc/internal/registry`。
+- `Endpoint.Address` 应为 `host:port` 格式，gRPC 场景不要带 `http://` 前缀。
+- `Weight` 建议设置为大于 0 的值，默认语义为 100。
+- `version` 为空时，注册侧与发现侧都会规范化为 `_default`，实际 etcd key 为 `/{prefix}/{service}/_default/{instance-id}`。
+- 每个实例向 etcd 写入单个 `Endpoint` JSON，发现端按 `/{prefix}/{service}/{version}/` 前缀聚合所有实例。
+- 发现端 `Discovery.Get` / `Watch` 会按 `Address` 去重，不校验 `Healthy` 字段，请确保注册时按需设置健康状态并在业务侧过滤。
+- 多个实例只需使用不同 `Address`（或显式指定 `WithInstanceID`），即可同时注册而不互相覆盖。
+- `Deregister()` 幂等安全，可重复调用；程序优雅退出时建议通过 `defer` 调用。
