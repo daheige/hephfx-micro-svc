@@ -1,14 +1,14 @@
 module github.com/daheige/hephfx-micro-svc
 
-go 1.25.0
+go 1.25.9
 
 require (
 	github.com/daheige/hello-pb v1.1.0
 	github.com/daheige/hephfx v1.3.6
+	github.com/daheige/registry v1.1.0
 	github.com/gin-gonic/gin v1.12.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.29.0
 	github.com/prometheus/client_golang v1.23.2
-	go.etcd.io/etcd/client/v3 v3.6.10
 	google.golang.org/grpc v1.81.1
 )
 
@@ -49,8 +49,9 @@ require (
 	github.com/quic-go/quic-go v0.59.1 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.3.1 // indirect
-	go.etcd.io/etcd/api/v3 v3.6.10 // indirect
-	go.etcd.io/etcd/client/pkg/v3 v3.6.10 // indirect
+	go.etcd.io/etcd/api/v3 v3.6.12 // indirect
+	go.etcd.io/etcd/client/pkg/v3 v3.6.12 // indirect
+	go.etcd.io/etcd/client/v3 v3.6.12 // indirect
 	go.mongodb.org/mongo-driver/v2 v2.6.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.28.0 // indirect

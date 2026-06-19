@@ -10,8 +10,31 @@
 
 如果不想pb托管，希望跟随项目走，可以参考：https://github.com/daheige/hephfx-micro-svc/tree/v1 分支代码
 
+# project structure
+```
+.
+├── app.yaml                          # 服务配置文件
+├── Cargo.toml                        # Rust 依赖配置
+├── Dockerfile                        # Go 服务镜像构建
+├── Makefile                          # Docker 构建/运行快捷命令
+├── bin/entrypoint.sh                 # 容器启动脚本
+├── cmd/
+│   ├── rpc/main.go                   # gRPC 服务端入口
+│   └── gateway/main.go               # gRPC HTTP Gateway 入口
+├── clients/
+│   ├── go/main.go                    # Go gRPC 客户端
+│   ├── go/k8sresolver/main.go        # K8s 自定义解析器客户端
+│   └── nodejs/                       # Node.js gRPC 客户端
+├── internal/
+│   ├── interfaces/rpc/interceptor/   # gRPC 拦截器
+│   └── interfaces/gateway/middleware/# Gateway 中间件
+├── k8s/                              # Kubernetes 部署配置
+├── src/                              # Rust gRPC 服务端源码
+└── readme.md                         # 本说明文档
+```
+
 # start running
-0. 先启动etcd
+0. 先启动 etcd（服务端使用了 etcd 服务注册，etcd 必须提前启动）
 ```shell
 docker run -d \
   --name etcd_test \
@@ -25,8 +48,11 @@ docker run -d \
   --advertise-client-urls http://0.0.0.0:2379 \
   --listen-client-urls http://0.0.0.0:2379
 ```
-1. 先运行命令`go run cmd/rpc/main.go`启动服务端。
-2. 接着执行`go run clients/go/main.go`运行客户端。
+1. 运行命令`go run cmd/rpc/main.go`启动 gRPC 服务端。
+2. 如需启动 HTTP Gateway，执行`go run cmd/gateway/main.go`（需先启动 gRPC 服务端）。
+3. 执行`go run clients/go/main.go`运行客户端。
+
+> 说明：`cmd/rpc/main.go` 默认开启了 gRPC 与 HTTP Gateway 共用端口（`WithEnableGRPCShareAddress`），因此访问 `http://localhost:50051/v1/say/daheige` 即可直接请求 HTTP 接口。`cmd/gateway/main.go` 则是独立的 Gateway 示例。
 
 # grpc gateway
 1. 需要在 https://github.com/daheige/hello-pb/blob/main/protos/hello.proto 文件添加如下核心配置
@@ -144,7 +170,24 @@ node clients/nodejs/app.js
 ![node-client-run.png](node-client-run.png)
 
 # Makefile
-进入 https://github.com/daheige/hello-pb 项目中执行`make gen`一键生成pb代码
+进入 https://github.com/daheige/hello-pb 项目中执行`make gen`一键生成 pb 代码。
+
+本项目根目录的 Makefile 提供了 Docker 构建与运行快捷命令：
+```shell
+# 构建镜像
+make build
+
+# 运行容器
+make run
+
+# 重新构建并运行
+make rebuild-run
+
+# 停止/重启/移除容器
+make stop
+make restart
+make remove
+```
 
 # only start grpc server
 ```go
@@ -275,7 +318,46 @@ grpcPort := 50051
 ```
 
 # service discovery and register
-- 在 Kubernetes 中让 gRPC 客户端连接集群内服务，关键在于选择合适的服务发现机制。gRPC 的长连接特性使得直接使用 K8s Service 无法实现真正的负载均衡。
+本项目服务端使用 [github.com/daheige/registry](https://github.com/daheige/registry) 进行服务注册与发现，默认采用 etcd 作为注册中心。原 `internal/registry` 已迁移为独立仓库，本项目不再内置。
+
+## etcd 服务注册
+`cmd/rpc/main.go` 中通过 `registry` + `etcd` 将 gRPC 服务注册到 etcd：
+```go
+import (
+    "github.com/daheige/registry"
+    "github.com/daheige/registry/etcd"
+)
+
+regAddr, err := registry.Resolve(address)
+if err != nil {
+    log.Fatal("resolve address err:", err)
+}
+
+// etcd 注册
+regEntry, err := etcd.NewServiceRegistry([]string{
+    "127.0.0.1:12379",
+}, "services", "Hello.Greeter", registry.Endpoint{
+    Address:  regAddr,
+    Weight:   100,
+    Protocol: registry.ProtocolGRPC,
+    Region:   "",
+    Version:  "", // 对应的版本号，例如: v1,v2,或者为空
+    Healthy:  true,
+}, etcd.WithTTL(10), etcd.WithEtcdTimeout(5*time.Second))
+if err != nil {
+    log.Fatal("failed to new service registry", err)
+}
+err = regEntry.Register()
+if err != nil {
+    log.Fatal("failed to register service", err)
+}
+defer regEntry.Deregister()
+```
+
+更多 registry 用法可参考 [github.com/daheige/registry](https://github.com/daheige/registry)。
+
+## Kubernetes 服务发现
+在 Kubernetes 中让 gRPC 客户端连接集群内服务，关键在于选择合适的服务发现机制。gRPC 的长连接特性使得直接使用 K8s Service 无法实现真正的负载均衡。
 - ‌核心解决方案：使用 Headless Service + DNS 解析‌。也就是说，通过创建 `Headless Service（clusterIP: None）`，gRPC 客户端能够直接获取所有 Pod IP 地址，从而实现基于连接的负载均衡。
 - 客户端连接地址格式：dns:///<service-name>.<namespace>.svc.cluster.local:50051
 
@@ -406,9 +488,33 @@ data:
 ```
 
 服务发现和注册说明：
-- 以上配置，请根据实际情况进行调整即可，或者说使用其他的服务发现和注册平台也可以，例如：etcd服务发现和注册，封装见 https://github.com/daheige/hephfx/tree/main/hestia 包。
-- 如果需要本地调试调用k8s中的pods节点微服务接口，可以参考`k8s`目录中的`k8s-node-port.yaml`或直接通过`kubectl port-forward service/grpc-hello-svc 50051:50051`实现端口转发。
+- 以上配置，请根据实际情况进行调整即可，或者说使用其他的服务发现和注册平台也可以。
+- 如果需要本地调试调用k8s中的pods节点微服务接口，可以参考`k8s`目录中的`service-node-port.yaml`或直接通过`kubectl port-forward service/grpc-hello-svc 50051:50051`实现端口转发。
+
+## 自定义 k8s resolver
+`clients/go/k8sresolver/main.go` 提供了自定义 gRPC resolver 示例，使用 `k8s:///` 协议连接 Headless Service：
+```go
+address := "k8s:///hello.default.svc.cluster.local:30051"
+clientConn, err := grpc.NewClient(
+    address,
+    grpc.WithDefaultServiceConfig(`{"loadBalancingConfig": [{"round_robin":{}}]}`),
+    grpc.WithTransportCredentials(insecure.NewCredentials()),
+)
+```
+运行效果参考 `k8s/readme.md`。
 
 # rust grpc microservice
-- 通过 tonic 框架实现，具体看：src/main.rs 或 https://github.com/daheige/rs-grpc
-- rust客户端调用方式见：src/client.rs 文件，pb代码生成方式见：https://github.com/daheige/hello-pb/blob/main/build.rs
+- 通过 tonic 框架实现，配置文件为 `app.yaml`，具体看：`src/main.rs` 或 https://github.com/daheige/rs-grpc
+- rust 客户端调用方式见：`src/client.rs` 文件，pb 代码生成方式见：https://github.com/daheige/hello-pb/blob/main/build.rs
+
+启动 Rust 服务端：
+```shell
+cargo run
+# 或指定 bin 名称
+cargo run --bin hephfx-micro-svc
+```
+
+启动 Rust 客户端：
+```shell
+cargo run --bin hello-client
+```

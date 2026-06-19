@@ -12,8 +12,10 @@ import (
 
 	"github.com/daheige/hello-pb/pb"
 
+	"github.com/daheige/registry"
+	"github.com/daheige/registry/etcd"
+
 	"github.com/daheige/hephfx-micro-svc/internal/interfaces/rpc/interceptor"
-	"github.com/daheige/hephfx-micro-svc/internal/registry"
 )
 
 func main() {
@@ -42,8 +44,9 @@ func main() {
 	// })
 
 	// 创建grpc微服务实例
+	address := fmt.Sprintf(":%d", grpcPort)
 	s := micro.NewService(
-		fmt.Sprintf("0.0.0.0:%d", grpcPort),
+		address,
 
 		// start grpc and http gateway use one address
 		micro.WithEnableGRPCShareAddress(),
@@ -76,16 +79,22 @@ func main() {
 	// 注册grpc微服务
 	pb.RegisterGreeterServer(s.GRPCServer, service)
 
+	regAddr, err := registry.Resolve(address)
+	if err != nil {
+		log.Fatal("resolve address err:", err)
+	}
+
 	// etcd注册
-	regEntry, err := registry.NewServiceRegistry([]string{
+	regEntry, err := etcd.NewServiceRegistry([]string{
 		"127.0.0.1:12379",
-	}, "services", "Hello.Greeter", "v1", registry.Endpoint{
-		Address:  "127.0.0.1:50051",
+	}, "services", "Hello.Greeter", registry.Endpoint{
+		Address:  regAddr,
 		Weight:   100,
-		Protocol: "GRPC",
+		Protocol: registry.ProtocolGRPC,
 		Region:   "",
+		Version:  "", // 对应的版本号，例如: v1,v2,或者为空
 		Healthy:  true,
-	}, registry.WithTTL(10), registry.WithEtcdTimeout(5*time.Second))
+	}, etcd.WithTTL(10), etcd.WithEtcdTimeout(5*time.Second))
 	if err != nil {
 		log.Fatal("failed to new service registry", err)
 	}
