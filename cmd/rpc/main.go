@@ -6,14 +6,14 @@ import (
 	"log"
 	"time"
 
+	"github.com/daheige/hephfx/hestia"
+	"github.com/daheige/hephfx/hestia/etcd"
 	"github.com/daheige/hephfx/logger"
 	"github.com/daheige/hephfx/micro"
 	"github.com/daheige/hephfx/monitor"
+	"github.com/daheige/registry"
 
 	"github.com/daheige/hello-pb/pb"
-
-	"github.com/daheige/registry"
-	"github.com/daheige/registry/etcd"
 
 	"github.com/daheige/hephfx-micro-svc/internal/interfaces/rpc/interceptor"
 )
@@ -85,24 +85,30 @@ func main() {
 	}
 
 	// etcd注册
-	regEntry, err := etcd.NewServiceRegistry([]string{
+	regEntry, err := etcd.NewRegistry([]string{
 		"127.0.0.1:12379",
-	}, "services", "Hello.Greeter", registry.Endpoint{
-		Address:  regAddr,
-		Weight:   100,
-		Protocol: registry.ProtocolGRPC,
-		Region:   "",
-		Version:  "", // 对应的版本号，例如: v1,v2,或者为空
-		Healthy:  true,
-	}, etcd.WithTTL(10), etcd.WithEtcdTimeout(5*time.Second))
+	},
+		etcd.WithDialTimeout(10*time.Second),
+		etcd.WithPrefix("services"),
+	)
 	if err != nil {
 		log.Fatal("failed to new service registry", err)
 	}
-	err = regEntry.Register()
+	regService := &hestia.Service{
+		Network:  "tcp",
+		Name:     "Hello.Greeter",
+		Address:  regAddr,
+		Version:  "v1",
+		Created:  time.Now().Format("2006-01-02 15:04:05"),
+		Protocol: "GRPC",
+		Healthy:  true,
+		Weight:   1,
+	}
+	err = regEntry.Register(context.Background(), regService)
 	if err != nil {
 		log.Fatal("failed to register service", err)
 	}
-	defer regEntry.Deregister()
+	defer regEntry.Deregister(context.Background(), regService)
 
 	// 运行服务
 	if err := s.Run(); err != nil {
