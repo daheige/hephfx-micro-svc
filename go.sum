@@ -18,8 +18,6 @@ github.com/daheige/hello-pb v1.1.0 h1:JaryT1OR7kcN3Bl9hhZxPLRO1vdEYDKCHYQIbxYxFV
 github.com/daheige/hello-pb v1.1.0/go.mod h1:TqcL1DEtc+cO01rUFuSRK2bMpBHxJW1ejf2c0S8kIC0=
 github.com/daheige/hephfx v1.5.1 h1:ZNudWkbOUxlWSwZbsVSg8aPk5O8EPeWMij3HVO0Sjcw=
 github.com/daheige/hephfx v1.5.1/go.mod h1:dJytuLehumVmL0wJzpBuZkdW5/CidHIpOjIsvN0ZB5A=
-github.com/daheige/registry v1.2.0 h1:shS5+qBKZtNLn7sIgVfXqWPBWd+S/CykTLFfjzhSD48=
-github.com/daheige/registry v1.2.0/go.mod h1:EIUFKPqppbejoKRDC4V6v3zI3m2EW4eHfCaqHpu1Hz0=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=

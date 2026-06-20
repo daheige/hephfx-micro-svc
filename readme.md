@@ -318,43 +318,61 @@ grpcPort := 50051
 ```
 
 # service discovery and register
-本项目服务端使用 [github.com/daheige/registry](https://github.com/daheige/registry) 进行服务注册与发现，默认采用 etcd 作为注册中心。原 `internal/registry` 已迁移为独立仓库，本项目不再内置。
+本项目服务端使用 [github.com/daheige/hephfx/hestia](https://github.com/daheige/hephfx/tree/main/hestia) 进行服务注册与发现，默认采用 etcd 作为注册中心。
 
 ## etcd 服务注册
-`cmd/rpc/main.go` 中通过 `registry` + `etcd` 将 gRPC 服务注册到 etcd：
+`cmd/rpc/main.go` 中通过 `hephfx/hestia/etcd` 将 gRPC 服务注册到 etcd：
 ```go
 import (
-    "github.com/daheige/registry"
-    "github.com/daheige/registry/etcd"
+    "context"
+    "log"
+    "time"
+
+    "github.com/daheige/hephfx/hestia"
+    "github.com/daheige/hephfx/hestia/etcd"
 )
 
-regAddr, err := registry.Resolve(address)
+regAddr, err := hestia.Resolve(address)
 if err != nil {
     log.Fatal("resolve address err:", err)
 }
 
-// etcd 注册
-regEntry, err := etcd.NewServiceRegistry([]string{
+// 创建 etcd 注册中心
+regEntry, err := etcd.NewRegistry([]string{
     "127.0.0.1:12379",
-}, "services", "Hello.Greeter", registry.Endpoint{
-    Address:  regAddr,
-    Weight:   100,
-    Protocol: registry.ProtocolGRPC,
-    Region:   "",
-    Version:  "", // 对应的版本号，例如: v1,v2,或者为空
-    Healthy:  true,
-}, etcd.WithTTL(10), etcd.WithEtcdTimeout(5*time.Second))
+},
+    etcd.WithDialTimeout(10*time.Second),
+    etcd.WithPrefix("services"),
+)
 if err != nil {
     log.Fatal("failed to new service registry", err)
 }
-err = regEntry.Register()
+
+// 构造服务注册信息
+regService := &hestia.Service{
+    Network:  "tcp",
+    Name:     "Hello.Greeter",
+    Address:  regAddr,
+    Version:  "v1",
+    Created:  time.Now().Format("2006-01-02 15:04:05"),
+    Protocol: "GRPC",
+    Healthy:  true,
+    Weight:   1,
+}
+
+// 注册服务
+err = regEntry.Register(context.Background(), regService)
 if err != nil {
     log.Fatal("failed to register service", err)
 }
-defer regEntry.Deregister()
+defer regEntry.Deregister(context.Background(), regService)
 ```
 
-更多 registry 用法可参考 [github.com/daheige/registry](https://github.com/daheige/registry)。
+- `hestia.Resolve` 用于将监听地址（如 `:50051`）解析为可用于注册的 IP:Port。
+- `etcd.NewRegistry` 创建注册中心，支持 `WithDialTimeout`、`WithPrefix`、`WithLeaseTTL` 等选项。
+- 服务元数据通过 `*hestia.Service` 描述，`Register` / `Deregister` 需要传入 `context.Context` 和服务实例。
+
+更多 registry 用法可参考 [github.com/daheige/hephfx/hestia](https://github.com/daheige/hephfx/tree/main/hestia)。
 
 ## Kubernetes 服务发现
 在 Kubernetes 中让 gRPC 客户端连接集群内服务，关键在于选择合适的服务发现机制。gRPC 的长连接特性使得直接使用 K8s Service 无法实现真正的负载均衡。

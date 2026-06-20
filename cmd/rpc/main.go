@@ -11,7 +11,6 @@ import (
 	"github.com/daheige/hephfx/logger"
 	"github.com/daheige/hephfx/micro"
 	"github.com/daheige/hephfx/monitor"
-	"github.com/daheige/registry"
 
 	"github.com/daheige/hello-pb/pb"
 
@@ -79,7 +78,7 @@ func main() {
 	// 注册grpc微服务
 	pb.RegisterGreeterServer(s.GRPCServer, service)
 
-	regAddr, err := registry.Resolve(address)
+	regAddr, err := hestia.Resolve(address)
 	if err != nil {
 		log.Fatal("resolve address err:", err)
 	}
