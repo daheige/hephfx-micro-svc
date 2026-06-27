@@ -16,8 +16,8 @@ github.com/coreos/go-systemd/v22 v22.7.0 h1:LAEzFkke61DFROc7zNLX/WA2i5J8gYqe0rSj
 github.com/coreos/go-systemd/v22 v22.7.0/go.mod h1:xNUYtjHu2EDXbsxz1i41wouACIwT7Ybq9o0BQhMwD0w=
 github.com/daheige/hello-pb v1.1.0 h1:JaryT1OR7kcN3Bl9hhZxPLRO1vdEYDKCHYQIbxYxFVA=
 github.com/daheige/hello-pb v1.1.0/go.mod h1:TqcL1DEtc+cO01rUFuSRK2bMpBHxJW1ejf2c0S8kIC0=
-github.com/daheige/hephfx v1.5.1 h1:ZNudWkbOUxlWSwZbsVSg8aPk5O8EPeWMij3HVO0Sjcw=
-github.com/daheige/hephfx v1.5.1/go.mod h1:dJytuLehumVmL0wJzpBuZkdW5/CidHIpOjIsvN0ZB5A=
+github.com/daheige/hephfx v1.5.10 h1:+CKroo56Srg3GLBN06STOFbNY0Cr4esW4+mQd65y9ck=
+github.com/daheige/hephfx v1.5.10/go.mod h1:sIjJdrTNVc4L0KAYJXvxTlHy22MZYE/1RFouWeyn+qE=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=

@@ -1,10 +1,10 @@
 module github.com/daheige/hephfx-micro-svc
 
-go 1.25.9
+go 1.26
 
 require (
 	github.com/daheige/hello-pb v1.1.0
-	github.com/daheige/hephfx v1.5.1
+	github.com/daheige/hephfx v1.5.10
 	github.com/gin-gonic/gin v1.12.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.29.0
 	github.com/prometheus/client_golang v1.23.2
