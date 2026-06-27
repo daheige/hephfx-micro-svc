@@ -3,12 +3,9 @@ package main
 import (
 	"context"
 	"log"
-	"time"
-
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/daheige/hello-pb/pb"
+	"github.com/daheige/hephfx/micro/gclient"
 )
 
 func main() {
@@ -19,10 +16,11 @@ func main() {
 	// address := "hello.default.svc.cluster.local:30051"
 	log.Println("address: ", address)
 
-	client, err := initGRPCClient(address, pb.NewGreeterClient)
+	client, err := gclient.InitGRPCClient(address, pb.NewGreeterClient)
 	if err != nil {
 		log.Fatalf("failed to create client: %v", err)
 	}
+	defer gclient.Close(address)
 
 	// Contact the server and print out its response.
 	for i := 0; i < 3; i++ {
@@ -35,24 +33,4 @@ func main() {
 
 		log.Printf("res message:%s", res.Message)
 	}
-}
-
-// initGRPCClient 创建 gRPC 连接并通过 factory 生成任意 pb.XXXClient。
-// T 为客户端接口类型，例如 pb.GreeterClient、pb.OrderClient 等。
-func initGRPCClient[T any](address string, factory func(grpc.ClientConnInterface) T) (T, error) {
-	var zero T
-	conn, err := grpc.NewClient(
-		address,
-		// 如果使用k8s命名服务以及headless方式访问，需要打开下面的注释，实现客户端负载均衡
-		// 关键配置：启用round_robin负载均衡策略
-		grpc.WithDefaultServiceConfig(`{"loadBalancingConfig": [{"round_robin":{}}]}`),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithIdleTimeout(30*time.Minute), // 连接生命周期
-		grpc.WithMaxCallAttempts(3),          // 最大重试次数
-	)
-	if err != nil {
-		return zero, err
-	}
-
-	return factory(conn), nil
 }
