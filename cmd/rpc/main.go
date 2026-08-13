@@ -83,31 +83,35 @@ func main() {
 		log.Fatal("resolve address err:", err)
 	}
 
-	// etcd注册
-	regEntry, err := etcd.NewRegistry([]string{
-		"127.0.0.1:12379",
-	},
-		etcd.WithDialTimeout(10*time.Second),
-		etcd.WithPrefix("services"),
-	)
-	if err != nil {
-		log.Fatal("failed to new service registry", err)
+	// 是否需要将服务注册到etcd，可根据实际情况选择
+	var enableRegistry bool
+	if enableRegistry {
+		// etcd注册
+		regEntry, err := etcd.NewRegistry([]string{
+			"127.0.0.1:12379",
+		},
+			etcd.WithDialTimeout(10*time.Second),
+			etcd.WithPrefix("services"),
+		)
+		if err != nil {
+			log.Fatal("failed to new service registry", err)
+		}
+		regService := &hestia.Service{
+			Network:  "tcp",
+			Name:     "Hello.Greeter",
+			Address:  regAddr,
+			Version:  "v1",
+			Created:  time.Now().Format("2006-01-02 15:04:05"),
+			Protocol: "GRPC",
+			Healthy:  true,
+			Weight:   1,
+		}
+		err = regEntry.Register(context.Background(), regService)
+		if err != nil {
+			log.Fatal("failed to register service", err)
+		}
+		defer regEntry.Deregister(context.Background(), regService)
 	}
-	regService := &hestia.Service{
-		Network:  "tcp",
-		Name:     "Hello.Greeter",
-		Address:  regAddr,
-		Version:  "v1",
-		Created:  time.Now().Format("2006-01-02 15:04:05"),
-		Protocol: "GRPC",
-		Healthy:  true,
-		Weight:   1,
-	}
-	err = regEntry.Register(context.Background(), regService)
-	if err != nil {
-		log.Fatal("failed to register service", err)
-	}
-	defer regEntry.Deregister(context.Background(), regService)
 
 	// 运行服务
 	if err := s.Run(); err != nil {
