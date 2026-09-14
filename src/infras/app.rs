@@ -1,7 +1,7 @@
 use config::{Config, ConfigTrait};
-use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
+use std::sync::LazyLock as Lazy;
 
 // AppConfig 项目配置信息
 #[derive(Debug, PartialEq, Serialize, Deserialize, Default)]
